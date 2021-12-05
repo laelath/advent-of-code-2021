@@ -1,3 +1,4 @@
+import Data.List
 import System.Exit
 import System.IO
 
@@ -47,7 +48,7 @@ ones = 1 : ones
 
 main = do
   lines <- filter (\((x1,y1),(x2,y2)) -> x1 == x2 || y1 == y2) <$> parseInput "input"
-  print $ length $ filter (>=2) $ HashMap.elems $ HashMap.fromListWith (+) $ zip (foldl linePoints [] lines) ones
+  print $ length $ filter (>=2) $ HashMap.elems $ HashMap.fromListWith (+) $ zip (foldl' linePoints [] lines) ones
   -- print $ countDup 0 $ foldl linePoints [] lines
   -- print $ length $ filter (>=2) [length $ filter (onLine (i,j)) lines | i <- [0..999], j <- [0..999] ]
   return 0

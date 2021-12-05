@@ -1,3 +1,4 @@
+import Data.List
 import System.Exit
 import System.IO
 
@@ -53,6 +54,6 @@ ones = 1 : ones
 
 main = do
   lines <- parseInput "input"
-  print $ length $ filter (>=2) $ HashMap.elems $ HashMap.fromListWith (+) $ zip (foldl linePoints [] lines) ones
+  print $ length $ filter (>=2) $ HashMap.elems $ HashMap.fromListWith (+) $ zip (foldl' linePoints [] lines) ones
   -- print $ length $ filter (>=2) [length $ filter (onLine (i,j)) lines | i <- [0..999], j <- [0..999] ]
   return 0
