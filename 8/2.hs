@@ -8,7 +8,7 @@ findDigit :: String -> Maybe Int
 findDigit str = elemIndex (sort str) digits
 
 applyMapping :: [(Char, Char)] -> [String] -> [String]
-applyMapping m pats = fromJust (mapM (mapM (`lookup` m)) pats)
+applyMapping m = map $ map $ fromJust . (`lookup` m)
 
 checkMapping :: [(Char, Char)] -> [String] -> Bool
 checkMapping m pats = isJust $ mapM findDigit $ applyMapping m pats
