@@ -1,45 +1,45 @@
+import Data.Array
 import Data.Char
-import Data.List
-
-import qualified Data.HashMap as HashMap
-import qualified Data.HashSet as HashSet
-import qualified Data.PSQueue as Queue
+import Data.Maybe
 
 import System.Environment
-import System.IO
 
-coords :: Int -> [[a]] -> [(Int,Int)]
-coords _ [] = []
-coords n (h:t) = [(n,m) | m <- [0..length h - 1]] ++ coords (n+1) t
+type Grid = Array (Int, Int) Int
+type Queue = [(Int, [(Int, Int)])]
 
-lookupPoint (0,0) ((v:tx):ty) = Just v
-lookupPoint (x,0) ((_:tx):ty) = lookupPoint (x-1,0) (tx:ty)
-lookupPoint (x,y) (_:ty) = lookupPoint (x,y-1) ty
-lookupPoint _ _ = Nothing
-
--- lookupPoint (x,y) grid
---   | x < 0 || y < 0 = Nothing
---   | y >= length grid = Nothing
---   | x >= length (grid !! y) = Nothing
---   | otherwise = Just $ (grid !! y) !! x
-
-manhattan (x1,y1) (x2,y2) = abs (x1 - x2) + abs (y1 - y2)
-
--- gridBFS :: [[Int]] -> (Int,Int) -> [(Int,(Int,Int))] -> Int
-gridBFS grid end seen ((w,p):t)
-  | p == end = w
-  | otherwise = gridBFS grid end (HashSet.insert p seen) $ insertAdjs w p t
+parseGrid :: [[Char]] -> Grid
+parseGrid inLines = listArray ((1,1), (m,n)) (map digitToInt (concat inLines))
   where
-    insertAdjs :: Int -> (Int,Int) -> [(Int,(Int,Int))] -> [(Int,(Int,Int))]
-    insertAdjs w p l = foldl' (\acc q -> case HashMap.lookup q grid of
-                                           Nothing -> acc
-                                           Just v -> insert (w + v + manhattan q end - manhattan p end, q) acc)
-                              l (adjPoints p)
-    adjPoints (x,y) = filter (not . (`HashSet.member` seen)) [(x+1,y),(x,y+1),(x-1,y),(x,y-1)]
-gridBFS _ _ _ [] = undefined
+    m = length inLines
+    n = length (head inLines)
+
+enqueue :: (Int, (Int, Int)) -> Queue -> Queue
+enqueue (d, p) [] = [(d, [p])]
+enqueue (d1, p1) ((d2, lp) : t)
+  | d1 < d2 = (d1, [p1]) : (d2, lp) : t
+  | d1 == d2 =  (d2, p1 : lp) : t
+  | otherwise = (d2, lp) : enqueue (d1, p1) t
+
+dequeue :: Queue -> Maybe ((Int, (Int, Int)), Queue)
+dequeue [] = Nothing
+dequeue ((_, []) : rst) = dequeue rst
+dequeue ((d, h : t) : rst) = Just ((d, h), (d, t) : rst)
+
+search :: Grid -> (Int,Int) -> [(Int,Int)] -> Queue -> Int
+search grid end seen queue
+  | p == end = dist
+  | p `elem` seen = search grid end seen queue'
+  | otherwise = search grid end (p : seen) $ foldr enqueue queue' (neighbors p)
+  where
+    ((dist, p), queue') = fromJust $ dequeue queue
+    neighbors :: (Int, Int) -> [(Int, (Int,Int))]
+    neighbors (i, j) = [ (dist + grid ! (i', j'), (i', j'))
+                       | (i', j') <- [(i - 1, j), (i + 1, j), (i, j - 1), (i, j + 1)]
+                       , i' >= 1 && i' <= m && j' >= 1 && j' <= n
+                       ]
+    (_, (m, n)) = bounds grid
 
 main = do
   args <- getArgs
-  grid <- map (map digitToInt) . lines <$> readFile (head args)
-  let end = (length (last grid) - 1,length grid - 1)
-  print $ gridBFS (HashMap.fromList (zip (coords 0 grid) (concat grid))) end HashSet.empty [(manhattan (0,0) end,(0,0))]
+  grid <- parseGrid . lines <$> readFile (head args)
+  print $ search grid (snd $ bounds grid) [] [(0,[(1,1)])]
