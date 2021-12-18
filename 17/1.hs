@@ -47,5 +47,5 @@ main = do
   args <- getArgs
   (xRange, yRange) <- parseInput (head args)
   let dX = head [dX | dX <- [1..], dX `reaches` xRange ]
-      dY = maximum [dY | dY <- [1..500], (dX, dY) `stepsInto` (xRange, yRange)]
+      dY = maximum [dY | dY <- [1..(-(fst yRange))], (dX, dY) `stepsInto` (xRange, yRange)]
   print $ sum [1..dY]

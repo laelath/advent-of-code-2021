@@ -47,5 +47,5 @@ main = do
   args <- getArgs
   ((minX, maxX), (minY, maxY)) <- parseInput (head args)
   let minDX = head [dX | dX <- [1..], dX `reaches` (minX, maxX) ]
-      velocities = [(dX, dY) | dX <- [minDX..maxX], dY <- [minY..500], (dX, dY) `stepsInto` ((minX, maxX), (minY, maxY))]
+      velocities = [(dX, dY) | dX <- [minDX..maxX], dY <- [minY..(-minY)], (dX, dY) `stepsInto` ((minX, maxX), (minY, maxY))]
   print $ length velocities
